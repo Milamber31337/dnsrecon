@@ -763,7 +763,7 @@ def write_json(jsonfile, data, scan_info):
     write_to_file(json_data, jsonfile)
 
 
-def write_db(db, data):
+def write_db(db, data,dom):
     """
     Function to write DNS Records SOA, PTR, NS, A, AAAA, MX, TXT, SPF and SRV to
     DB.
@@ -776,6 +776,9 @@ def write_db(db, data):
 
     # Normalize the dictionary data
     for n in data:
+
+        if not 'domain' in n:
+            n['domain'] = dom
 
         if re.match(r'PTR|^[A]$|AAAA', n['type']):
             query = 'insert into data( domain, type, name, address ) ' + \
@@ -1772,7 +1775,7 @@ Increase the timeout from {request_timeout} seconds to a higher number with --li
     if results_db:
         print_status(f"Saving records to SQLite3 file: {results_db}")
         create_db(results_db)
-        write_db(results_db, returned_records)
+        write_db(results_db, returned_records,domain)
 
     # if an output csv file is specified it will write returned results.
     if csv_file:

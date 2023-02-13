@@ -680,7 +680,9 @@ def create_db(db):
     target TEXT(32),
     port TEXT(8),
     text TEXT(256),
-    zt_dns TEXT(32)
+    zt_dns TEXT(32),
+    unique (domain,type,name,address) on conflict ignore,
+    unique (domain,type,text) on conflict ignore
     )"""
 
     # Set the cursor for connection
@@ -781,7 +783,7 @@ def write_db(db, data,dom):
             n['domain'] = dom
 
         if re.match(r'PTR|^[A]$|AAAA', n['type']):
-            query = 'insert into data( domain, type, name, address ) ' + \
+            query = 'insert or ignore into data( domain, type, name, address ) ' + \
                     'values( "%(domain)s", "%(type)s", "%(name)s","%(address)s" )' % n
 
         elif re.match(r'NS$', n['type']):
@@ -789,27 +791,27 @@ def write_db(db, data,dom):
                     'values( "%(domain)s", "%(type)s", "%(target)s", "%(address)s" )' % n
 
         elif re.match(r'SOA', n['type']):
-            query = 'insert into data( domain, type, name, address ) ' + \
+            query = 'insert or ignore into data( domain, type, name, address ) ' + \
                     'values( "%(domain)s", "%(type)s", "%(mname)s", "%(address)s" )' % n
 
         elif re.match(r'MX', n['type']):
-            query = 'insert into data( domain, type, name, address ) ' + \
+            query = 'insert or ignore into data( domain, type, name, address ) ' + \
                     'values( "%(domain)s", "%(type)s", "%(exchange)s", "%(address)s" )' % n
 
         elif re.match(r'TXT', n['type']):
-            query = 'insert into data( domain, type, text) ' + \
+            query = 'insert or ignore into data( domain, type, text) ' + \
                     'values( "%(domain)s", "%(type)s","%(strings)s" )' % n
 
         elif re.match(r'SPF', n['type']):
-            query = 'insert into data( domain, type, text) ' + \
+            query = 'insert or ignore into data( domain, type, text) ' + \
                     'values( "%(domain)s", "%(type)s","%(strings)s" )' % n
 
         elif re.match(r'SRV', n['type']):
-            query = 'insert into data( domain, type, name, target, address, port ) ' + \
+            query = 'insert or ignore into data( domain, type, name, target, address, port ) ' + \
                     'values( "%(domain)s", "%(type)s", "%(name)s" , "%(target)s", "%(address)s" ,"%(port)s" )' % n
 
         elif re.match(r'CNAME', n['type']):
-            query = 'insert into data( domain, type, name, target ) ' + \
+            query = 'insert or ignore into data( domain, type, name, target ) ' + \
                     'values( "%(domain)s", "%(type)s", "%(name)s" , "%(target)s" )' % n
 
         else:
@@ -818,7 +820,7 @@ def write_db(db, data,dom):
             del n['type']
             record_data = "".join(['%s=%s,' % (key, value) for key, value in n.items()])
             records = [t, record_data]
-            query = "insert into data(domain,type,text) values (\"%(domain)\", '" + \
+            query = "insert or ignore into data(domain,type,text) values (\"%(domain)\", '" + \
                     records[0] + "','" + records[1] + "')"
 
         # Execute Query and commit

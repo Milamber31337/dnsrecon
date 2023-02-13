@@ -22,15 +22,17 @@ from dnsrecon.lib.msf_print import *
 
 from urllib.request import urlopen, Request
 from urllib.error import URLError, HTTPError
+from urllib.parse import quote
 
 
 def scrape_crtsh(dom):
     """
     Function for enumerating sub-domains by scraping crt.sh.
     """
+
     results = []
     headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:31.0) Gecko/20100101 Firefox/31.0'}
-    url = f'https://crt.sh/?q=%25.{dom}'
+    url = f'https://crt.sh/?q=%25.{quote(dom)}'
 
     req = Request(url=url, headers=headers)
     try:
